@@ -1,30 +1,36 @@
-from flask import Flask, render_template, request
 import os
+from io import BytesIO
+from flask import Flask, render_template
+from dotenv import load_dotenv
+from azure.storage.blob import BlobServiceClient
+from openpyxl import load_workbook
+
+load_dotenv()
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+container_name = os.getenv("AZURE_STORAGE_CONTAINER_NAME")
+blob_name = os.getenv("BLOB_NAME")
 
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
 
+    blob_client = blob_service_client.get_blob_client(
+        container=container_name,
+        blob=blob_name
+    )
 
-@app.route("/upload", methods=["POST"])
-def upload():
-    file = request.files["file"]
+    blob_data = blob_client.download_blob().readall()
 
-    if file.filename == "":
-        return "No file selected"
+    workbook = load_workbook(BytesIO(blob_data))
+    sheet = workbook.active
 
-    file_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
-    file.save(file_path)
+    data = list(sheet.values)
 
-    return f"{file.filename} uploaded successfully!"
+    return render_template("index.html", data=data)
 
 
 if __name__ == "__main__":
