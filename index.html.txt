@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cash Application Rule Engine</title>
+</head>
+<body>
+
+<h2>Cash Application Rule Engine</h2>
+
+<form action="/upload" method="POST" enctype="multipart/form-data">
+
+    <input type="file" name="file">
+
+    <br><br>
+
+    <button type="submit">
+        Upload Excel
+    </button>
+
+</form>
+
+</body>
+</html>
